@@ -26,10 +26,9 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wextra
 )
 
-# Keep room after the text segment for Vita's SCE module metadata.
-# The default adjacent data segment can overlap that metadata in larger builds.
+# Place data well beyond the enlarged text segment and Vita module metadata.
 target_link_options(${PROJECT_NAME} PRIVATE
-    "-Wl,-Tdata=0x81100000"
+    "-Wl,-Tdata=0x81200000"
 )
 
 # Modern vitaGL is a C++ static library with runtime shader compiler helpers.
