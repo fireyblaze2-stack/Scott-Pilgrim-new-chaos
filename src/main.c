@@ -242,8 +242,10 @@ int main(int argc, char **argv) {
         previous_vita_buttons = vita_buttons;
 
         const Uint8 *keys=SDL_GetKeyboardState(NULL);
-        bool left=keys[SDL_SCANCODE_LEFT], right=keys[SDL_SCANCODE_RIGHT];
-        bool up=keys[SDL_SCANCODE_UP], down=keys[SDL_SCANCODE_DOWN];
+        bool left=keys[SDL_SCANCODE_LEFT] || (vita_buttons & SCE_CTRL_LEFT) || vita_pad.lx < 64;
+        bool right=keys[SDL_SCANCODE_RIGHT] || (vita_buttons & SCE_CTRL_RIGHT) || vita_pad.lx > 192;
+        bool up=keys[SDL_SCANCODE_UP] || (vita_buttons & SCE_CTRL_UP) || vita_pad.ly < 64;
+        bool down=keys[SDL_SCANCODE_DOWN] || (vita_buttons & SCE_CTRL_DOWN) || vita_pad.ly > 192;
         if (pad) {
             if (SDL_GameControllerGetButton(pad,SDL_CONTROLLER_BUTTON_DPAD_LEFT)) left=true;
             if (SDL_GameControllerGetButton(pad,SDL_CONTROLLER_BUTTON_DPAD_RIGHT)) right=true;
