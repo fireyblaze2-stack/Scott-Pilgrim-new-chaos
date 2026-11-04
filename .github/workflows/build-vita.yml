@@ -12,6 +12,10 @@ jobs:
       image: vitasdk/vitasdk:2026.08
     steps:
       - uses: actions/checkout@v4
+      - name: Build and install vitaGL
+        run: |
+          git clone --depth 1 https://github.com/Rinnegatamante/vitaGL.git /tmp/vitaGL
+          make -C /tmp/vitaGL HAVE_SBRK=1 install
       - name: Configure
         run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" -DCMAKE_BUILD_TYPE=Release
       - name: Build
