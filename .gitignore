@@ -1,0 +1,7 @@
+build/
+*.vpk
+*.elf
+*.self
+*.bin
+CMakeCache.txt
+CMakeFiles/
