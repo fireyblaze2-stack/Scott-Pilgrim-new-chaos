@@ -26,10 +26,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wextra
 )
 
-# SDL2 on Vita is built against the GXM renderer and Vita system APIs.
-# These libraries must follow SDL2 so the static linker can resolve them.
+# SDL2's Vita backend calls OpenGL-style functions supplied by vitaGL.
+# Keep vitaGL after SDL2 so the static linker can resolve those symbols.
 target_link_libraries(${PROJECT_NAME}
     SDL2
+    vitaGL
     SceGxm_stub
     SceDisplay_stub
     SceCtrl_stub
