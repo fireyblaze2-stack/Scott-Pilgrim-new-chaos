@@ -26,9 +26,16 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wextra
 )
 
-# Place data well beyond the enlarged text segment and Vita module metadata.
+# Keep the data segment placement while inspecting the resulting ELF layout.
 target_link_options(${PROJECT_NAME} PRIVATE
     "-Wl,-Tdata=0x81200000"
+)
+
+# Print the linked ELF layout before vita_create_self packages it.
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND "$ENV{VITASDK}/bin/arm-vita-eabi-readelf" -l $<TARGET_FILE:${PROJECT_NAME}>
+    COMMAND "$ENV{VITASDK}/bin/arm-vita-eabi-readelf" -S $<TARGET_FILE:${PROJECT_NAME}>
+    VERBATIM
 )
 
 # Modern vitaGL is a C++ static library with runtime shader compiler helpers.
