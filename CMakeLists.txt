@@ -5,7 +5,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{VITASDK})
         CACHE PATH "VitaSDK toolchain")
 endif()
 
-project(NewChaos C)
+project(NewChaos LANGUAGES C CXX)
 
 if(NOT DEFINED ENV{VITASDK})
     message(FATAL_ERROR "VITASDK is not set. Install VitaSDK and export VITASDK.")
@@ -26,11 +26,17 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wextra
 )
 
-# SDL2's Vita backend calls OpenGL-style functions supplied by vitaGL.
-# Keep vitaGL after SDL2 so the static linker can resolve those symbols.
+# Modern vitaGL is a C++ static library with runtime shader compiler helpers.
+# Static-library order matters: dependencies follow the libraries that use them.
 target_link_libraries(${PROJECT_NAME}
     SDL2
     vitaGL
+    vitashark
+    mathneon
+    SceShaccCgExt
+    SceShaccCg_stub
+    SceKernelDmacMgr_stub
+    taihen_stub
     SceGxm_stub
     SceDisplay_stub
     SceCtrl_stub
@@ -47,8 +53,9 @@ target_link_libraries(${PROJECT_NAME}
     SceMotion_stub
     ScePower_stub
     SceProcessmgr_stub
-    m
     pthread
+    m
+    stdc++
 )
 
 vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
