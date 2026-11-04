@@ -12,14 +12,42 @@ jobs:
       image: vitasdk/vitasdk:2026.08
     steps:
       - uses: actions/checkout@v4
-      - name: Build and install vitaGL
+
+      # Build a reproducible modern vitaGL stack. Pin all source revisions so
+      # upstream changes cannot silently break the CI build.
+      - name: Build Vita graphics dependencies
         run: |
-          git clone --depth 1 https://github.com/Rinnegatamante/vitaGL.git /tmp/vitaGL
-          make -C /tmp/vitaGL HAVE_SBRK=1 install
+          export PATH="$VITASDK/bin:$PATH"
+          vdpm install taihen
+
+          git clone https://github.com/bythos14/SceShaccCgExt.git /tmp/SceShaccCgExt
+          git -C /tmp/SceShaccCgExt checkout fb0e9d338525b067f3679ab33571323336493cca
+          cmake -S /tmp/SceShaccCgExt -B /tmp/SceShaccCgExt/build \
+            -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_STANDARD=17 -DCMAKE_C_STANDARD_REQUIRED=ON \
+            -DCMAKE_C_EXTENSIONS=ON
+          cmake --build /tmp/SceShaccCgExt/build --parallel
+          cmake --install /tmp/SceShaccCgExt/build --prefix "$VITASDK/arm-vita-eabi"
+
+          git clone https://github.com/Rinnegatamante/math-neon.git /tmp/math-neon
+          git -C /tmp/math-neon checkout 0faab814782c071ff4015527f1ca955ab1ccc470
+          make -C /tmp/math-neon --jobs install
+
+          git clone https://github.com/Rinnegatamante/vitaShaRK.git /tmp/vitaShaRK
+          git -C /tmp/vitaShaRK checkout df24065e65098b2d1ac533760109ad4367573f28
+          make -C /tmp/vitaShaRK --jobs install
+
+          git clone https://github.com/Rinnegatamante/vitaGL.git /tmp/vitaGL
+          git -C /tmp/vitaGL checkout dca4b9d143290d78ec043131a19be36c78cdc7b5
+          make -C /tmp/vitaGL --jobs HAVE_SBRK=1 NO_SPLASHSCREEN=1 install
+
       - name: Configure
         run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VITASDK/share/vita.toolchain.cmake" -DCMAKE_BUILD_TYPE=Release
+
       - name: Build
         run: cmake --build build --parallel
+
       - name: Upload VPK
         uses: actions/upload-artifact@v4
         with:
