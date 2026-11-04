@@ -26,13 +26,28 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wextra
 )
 
-# SDL2 is provided by: vdpm install sdl2
+# SDL2 on Vita is built against the GXM renderer and Vita system APIs.
+# These libraries must follow SDL2 so the static linker can resolve them.
 target_link_libraries(${PROJECT_NAME}
     SDL2
-    SceCtrl_stub
+    SceGxm_stub
     SceDisplay_stub
+    SceCtrl_stub
+    SceAppMgr_stub
+    SceAppUtil_stub
+    SceAudio_stub
+    SceAudioIn_stub
     SceSysmodule_stub
+    SceIofilemgr_stub
+    SceCommonDialog_stub
+    SceIme_stub
+    SceTouch_stub
+    SceHid_stub
+    SceMotion_stub
+    ScePower_stub
+    SceProcessmgr_stub
     m
+    pthread
 )
 
 vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
