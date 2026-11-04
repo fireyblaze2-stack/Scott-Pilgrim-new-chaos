@@ -1,8 +1,10 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <psp2/ctrl.h>
 
 #define SCREEN_W 480
 #define SCREEN_H 272
@@ -203,6 +205,8 @@ int main(int argc, char **argv) {
     for (int i=0;i<SDL_NumJoysticks();i++) {
         if (SDL_IsGameController(i)) { pad=SDL_GameControllerOpen(i); if (pad) break; }
     }
+    sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+    static unsigned int previous_vita_buttons = 0;
     last_tick=SDL_GetTicks();
     while (running) {
         Uint32 now=SDL_GetTicks();
@@ -225,6 +229,18 @@ int main(int argc, char **argv) {
                 if (e.cbutton.button==SDL_CONTROLLER_BUTTON_BACK) running=false;
             }
         }
+        /* Read the Vita's built-in controls directly. SDL controller mappings
+           are not guaranteed to exist on every Vita SDL2 build. */
+        SceCtrlData vita_pad;
+        memset(&vita_pad, 0, sizeof(vita_pad));
+        sceCtrlPeekBufferPositive(0, &vita_pad, 1);
+        unsigned int vita_buttons = vita_pad.buttons;
+        if (vita_buttons & SCE_CTRL_CROSS) punch=true;
+        if (vita_buttons & SCE_CTRL_CIRCLE) kick=true;
+        if ((vita_buttons & SCE_CTRL_START) && !(previous_vita_buttons & SCE_CTRL_START) && game_over) reset_game();
+        if ((vita_buttons & SCE_CTRL_SELECT) && !(previous_vita_buttons & SCE_CTRL_SELECT)) running=false;
+        previous_vita_buttons = vita_buttons;
+
         const Uint8 *keys=SDL_GetKeyboardState(NULL);
         bool left=keys[SDL_SCANCODE_LEFT], right=keys[SDL_SCANCODE_RIGHT];
         bool up=keys[SDL_SCANCODE_UP], down=keys[SDL_SCANCODE_DOWN];
