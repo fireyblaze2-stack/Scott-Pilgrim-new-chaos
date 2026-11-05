@@ -81,5 +81,5 @@ endforeach()
 vita_create_vpk(NewChaos.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME "New Chaos"
-    FILES ${VPK_LIVEAREA_FILES}
+    FILES assets/scott_idle.bmp ${VPK_LIVEAREA_FILES}
 )

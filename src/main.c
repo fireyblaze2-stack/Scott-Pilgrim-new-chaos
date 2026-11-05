@@ -24,6 +24,8 @@ typedef struct {
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_GameController *pad;
+static SDL_Surface *scott_surface;
+static SDL_Texture *scott_texture;
 static Fighter player = {92.0f, 176.0f, 100, 1, 0, 0};
 static Fighter enemy  = {330.0f, 178.0f, 100, -1, 0, 0};
 static int score = 0;
@@ -103,17 +105,17 @@ static void draw_background(void) {
 }
 static void draw_player(void) {
     int x=(int)player.x, y=(int)player.y;
-    /* shadow */
     rect(x-3,y+27,24,4,20,19,31);
-    /* shoes and legs */
-    rect(x+2,y+22,6,7,35,39,65); rect(x+10,y+22,6,7,35,39,65);
-    rect(x+1,y+27,8,3,225,225,231); rect(x+10,y+27,8,3,225,225,231);
-    /* shirt, arms, head, hair */
-    rect(x+2,y+12,14,12,49,113,180);
-    rect(x-1,y+13,4,10,235,176,139); rect(x+15,y+13,4,10,235,176,139);
-    rect(x+3,y+3,12,10,242,190,151);
-    rect(x+2,y+1,14,5,47,34,38); rect(x+1,y+4,4,6,47,34,38);
-    rect(x+6,y+7,2,2,35,32,42);
+    if (scott_texture) {
+        SDL_Rect dst={x-5,y-10,30,40};
+        SDL_RendererFlip flip=player.facing<0?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE;
+        SDL_RenderCopyEx(renderer,scott_texture,NULL,&dst,0,NULL,flip);
+    } else {
+        rect(x+2,y+22,6,7,35,39,65); rect(x+10,y+22,6,7,35,39,65);
+        rect(x+2,y+12,14,12,49,113,180);
+        rect(x+3,y+3,12,10,242,190,151);
+        rect(x+2,y+1,14,5,47,34,38);
+    }
     if (player.attack_timer>0) {
         int ax = player.facing>0 ? x+18 : x-15;
         rect(ax,y+12,13,7,255,225,91);
@@ -202,6 +204,14 @@ int main(int argc, char **argv) {
     SDL_RenderSetLogicalSize(renderer,SCREEN_W,SCREEN_H);
     SDL_RenderSetIntegerScale(renderer,SDL_TRUE);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"0");
+    scott_surface=SDL_LoadBMP("app0:/assets/scott_idle.bmp");
+    if (scott_surface) {
+        Uint32 green=SDL_MapRGB(scott_surface->format,0,255,0);
+        SDL_SetColorKey(scott_surface,SDL_TRUE,green);
+        scott_texture=SDL_CreateTextureFromSurface(renderer,scott_surface);
+        SDL_FreeSurface(scott_surface);
+        scott_surface=NULL;
+    }
     for (int i=0;i<SDL_NumJoysticks();i++) {
         if (SDL_IsGameController(i)) { pad=SDL_GameControllerOpen(i); if (pad) break; }
     }
@@ -273,6 +283,7 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
+    if (scott_texture) SDL_DestroyTexture(scott_texture);
     if (pad) SDL_GameControllerClose(pad);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
