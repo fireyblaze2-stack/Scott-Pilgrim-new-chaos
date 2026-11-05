@@ -74,12 +74,12 @@ foreach(asset
     sce_sys/livearea/contents/template.xml
 )
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${asset}")
-        list(APPEND VPK_LIVEAREA_FILES "${asset}")
+        list(APPEND VPK_LIVEAREA_FILES "${asset}" "${asset}")
     endif()
 endforeach()
 
 vita_create_vpk(NewChaos.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME "New Chaos"
-    FILES assets/scott_idle.bmp ${VPK_LIVEAREA_FILES}
+    FILE assets/scott_idle.bmp assets/scott_idle.bmp ${VPK_LIVEAREA_FILES}
 )
