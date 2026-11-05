@@ -67,7 +67,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
-set(VPK_LIVEAREA_FILES)
+set(VPK_LIVEAREA_FILES assets/scott_idle.bmp)
 foreach(asset
     sce_sys/icon0.png
     sce_sys/livearea/contents/bg.png
