@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<livearea>
+  <livearea_bg>
+    <image>bg.png</image>
+  </livearea_bg>
+  <livearea_gate>
+    <startupを>yes</startupを>
+  </livearea_gate>
+</livearea>
