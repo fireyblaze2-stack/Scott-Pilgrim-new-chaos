@@ -70,4 +70,8 @@ vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
 vita_create_vpk(NewChaos.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME "New Chaos"
+    FILES
+        sce_sys/icon0.png
+        sce_sys/livearea/contents/bg.png
+        sce_sys/livearea/contents/template.xml
 )
