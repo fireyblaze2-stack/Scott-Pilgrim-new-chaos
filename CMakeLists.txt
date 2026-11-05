@@ -67,11 +67,19 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
+set(VPK_LIVEAREA_FILES)
+foreach(asset
+    sce_sys/icon0.png
+    sce_sys/livearea/contents/bg.png
+    sce_sys/livearea/contents/template.xml
+)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${asset}")
+        list(APPEND VPK_LIVEAREA_FILES "${asset}")
+    endif()
+endforeach()
+
 vita_create_vpk(NewChaos.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME "New Chaos"
-    FILES
-        sce_sys/icon0.png
-        sce_sys/livearea/contents/bg.png
-        sce_sys/livearea/contents/template.xml
+    FILES ${VPK_LIVEAREA_FILES}
 )
