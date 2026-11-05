@@ -206,11 +206,31 @@ int main(int argc, char **argv) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"0");
     scott_surface=SDL_LoadBMP("app0:/assets/scott_idle.bmp");
     if (scott_surface) {
-        Uint32 green=SDL_MapRGB(scott_surface->format,0,255,0);
-        SDL_SetColorKey(scott_surface,SDL_TRUE,green);
-        scott_texture=SDL_CreateTextureFromSurface(renderer,scott_surface);
+        /* Convert the sprite to RGBA and remove green-screen pixels, including
+           slightly off-green shades that caused a visible green box. */
+        SDL_Surface *rgba=SDL_ConvertSurfaceFormat(scott_surface,SDL_PIXELFORMAT_RGBA32,0);
         SDL_FreeSurface(scott_surface);
-        scott_surface=NULL;
+        scott_surface=rgba;
+        if (scott_surface && SDL_LockSurface(scott_surface)==0) {
+            for (int py=0; py<scott_surface->h; ++py) {
+                Uint32 *row=(Uint32 *)((Uint8 *)scott_surface->pixels+py*scott_surface->pitch);
+                for (int px=0; px<scott_surface->w; ++px) {
+                    Uint8 r,g,b,a;
+                    SDL_GetRGBA(row[px],scott_surface->format,&r,&g,&b,&a);
+                    if (g>150 && (int)g>(int)r*6/5 && (int)g>(int)b*6/5)
+                        row[px]=SDL_MapRGBA(scott_surface->format,r,g,b,0);
+                    else
+                        row[px]=SDL_MapRGBA(scott_surface->format,r,g,b,255);
+                }
+            }
+            SDL_UnlockSurface(scott_surface);
+        }
+        if (scott_surface) {
+            scott_texture=SDL_CreateTextureFromSurface(renderer,scott_surface);
+            if (scott_texture) SDL_SetTextureBlendMode(scott_texture,SDL_BLENDMODE_BLEND);
+            SDL_FreeSurface(scott_surface);
+            scott_surface=NULL;
+        }
     }
     for (int i=0;i<SDL_NumJoysticks();i++) {
         if (SDL_IsGameController(i)) { pad=SDL_GameControllerOpen(i); if (pad) break; }
