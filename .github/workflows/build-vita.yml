@@ -13,31 +13,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Vita LiveArea assets must use Vita-sized images; the supplied originals
-      # are oversized. Resize and optimize them before packaging.
+      # LiveArea PNGs must be 8-bit indexed, non-interlaced, and Vita-sized.
       - name: Prepare Vita LiveArea images
         run: |
           apt-get update
           apt-get install -y python3-pil
           python3 - <<'PY'
-          from PIL import Image
+          from PIL import Image, ImageOps
           from pathlib import Path
+          import struct
 
-          icon = Path("sce_sys/icon0.png")
-          if icon.exists():
-              im = Image.open(icon).convert("RGBA")
-              im.thumbnail((128, 128), Image.Resampling.LANCZOS)
-              canvas = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
-              canvas.alpha_composite(im, ((128-im.width)//2, (128-im.height)//2))
-              canvas.save(icon, format="PNG", optimize=True)
+          def save_indexed(source, destination, size):
+              im = Image.open(source).convert("RGB")
+              im = ImageOps.fit(im, size, method=Image.Resampling.LANCZOS)
+              im = im.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
+              im.save(destination, format="PNG", optimize=True, bits=8)
+              data = Path(destination).read_bytes()
+              assert data[:8] == b"\x89PNG\r\n\x1a\n"
+              width, height, depth, color_type = struct.unpack(">IIBB", data[16:26])
+              assert (width, height) == size, (destination, width, height)
+              assert depth == 8 and color_type == 3, (destination, depth, color_type)
+              assert len(data) <= 128 * 1024, (destination, len(data))
+              print(f"{destination}: {width}x{height}, 8-bit indexed, {len(data)} bytes")
 
-          bg = Path("sce_sys/livearea/contents/bg.png")
-          if bg.exists():
-              im = Image.open(bg).convert("RGB")
-              im.thumbnail((960, 544), Image.Resampling.LANCZOS)
-              canvas = Image.new("RGB", (960, 544), (0, 0, 0))
-              canvas.paste(im, ((960-im.width)//2, (544-im.height)//2))
-              canvas.save(bg, format="PNG", optimize=True)
+          save_indexed("sce_sys/icon0.png", "sce_sys/icon0.png", (128, 128))
+          save_indexed(
+              "sce_sys/livearea/contents/bg.png",
+              "sce_sys/livearea/contents/bg0.png",
+              (840, 500),
+          )
           PY
 
       # Build a reproducible modern vitaGL stack. Pin all source revisions so
