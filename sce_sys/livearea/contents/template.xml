@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<livearea>
-  <livearea_bg>
-    <image>bg.png</image>
-  </livearea_bg>
+<livearea style="a1" format-ver="01.00" content-rev="1">
+  <livearea-background>
+    <image>bg0.png</image>
+  </livearea-background>
+  <gate>
+  </gate>
 </livearea>
