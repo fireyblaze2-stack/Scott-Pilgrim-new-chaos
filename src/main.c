@@ -26,6 +26,7 @@ static SDL_Renderer *renderer;
 static SDL_GameController *pad;
 static SDL_Surface *scott_surface;
 static SDL_Texture *scott_texture;
+static bool player_moving = false;
 static Fighter player = {92.0f, 176.0f, 100, 1, 0, 0};
 static Fighter enemy  = {330.0f, 178.0f, 100, -1, 0, 0};
 static int score = 0;
@@ -107,9 +108,12 @@ static void draw_player(void) {
     int x=(int)player.x, y=(int)player.y;
     rect(x-3,y+27,24,4,20,19,31);
     if (scott_texture) {
-        SDL_Rect dst={x-5,y-10,30,40};
+        /* Eight 20x34 frames are arranged left-to-right in scott_walk_atlas.bmp. */
+        int frame = player_moving ? (int)((SDL_GetTicks() / 110) % 8) : 0;
+        SDL_Rect src = {frame * 20, 0, 20, 34};
+        SDL_Rect dst = {x-5, y-10, 30, 40};
         SDL_RendererFlip flip=player.facing<0?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE;
-        SDL_RenderCopyEx(renderer,scott_texture,NULL,&dst,0,NULL,flip);
+        SDL_RenderCopyEx(renderer,scott_texture,&src,&dst,0,NULL,flip);
     } else {
         rect(x+2,y+22,6,7,35,39,65); rect(x+10,y+22,6,7,35,39,65);
         rect(x+2,y+12,14,12,49,113,180);
@@ -172,10 +176,11 @@ static void update_game(float dt, const Uint8 *keys) {
     if (player.invuln>0) player.invuln--;
     if (enemy.hp<=0) { game_over=true; return; }
     float speed=2.0f;
-    if (keys[SDL_SCANCODE_LEFT]) { player.x-=speed; player.facing=-1; }
-    if (keys[SDL_SCANCODE_RIGHT]) { player.x+=speed; player.facing=1; }
-    if (keys[SDL_SCANCODE_UP]) player.y-=speed;
-    if (keys[SDL_SCANCODE_DOWN]) player.y+=speed;
+    player_moving = false;
+    if (keys[SDL_SCANCODE_LEFT]) { player.x-=speed; player.facing=-1; player_moving=true; }
+    if (keys[SDL_SCANCODE_RIGHT]) { player.x+=speed; player.facing=1; player_moving=true; }
+    if (keys[SDL_SCANCODE_UP]) { player.y-=speed; player_moving=true; }
+    if (keys[SDL_SCANCODE_DOWN]) { player.y+=speed; player_moving=true; }
     if (player.x<8) player.x=8;
     if (player.x>454) player.x=454;
     if (player.y<154) player.y=154;
@@ -204,7 +209,7 @@ int main(int argc, char **argv) {
     SDL_RenderSetLogicalSize(renderer,SCREEN_W,SCREEN_H);
     SDL_RenderSetIntegerScale(renderer,SDL_TRUE);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"0");
-    scott_surface=SDL_LoadBMP("app0:/assets/scott_idle.bmp");
+    scott_surface=SDL_LoadBMP("app0:/scott_walk_atlas.bmp");
     if (scott_surface) {
         /* Convert the sprite to RGBA and remove green-screen pixels, including
            slightly off-green shades that caused a visible green box. */
@@ -217,7 +222,8 @@ int main(int argc, char **argv) {
                 for (int px=0; px<scott_surface->w; ++px) {
                     Uint8 r,g,b,a;
                     SDL_GetRGBA(row[px],scott_surface->format,&r,&g,&b,&a);
-                    if (g>150 && (int)g>(int)r*6/5 && (int)g>(int)b*6/5)
+                    /* The uploaded atlas uses bright magenta as its transparent key. */
+                    if (r>220 && b>220 && g<60)
                         row[px]=SDL_MapRGBA(scott_surface->format,r,g,b,0);
                     else
                         row[px]=SDL_MapRGBA(scott_surface->format,r,g,b,255);
