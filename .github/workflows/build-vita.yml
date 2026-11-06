@@ -13,6 +13,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Vita LiveArea assets must use Vita-sized images; the supplied originals
+      # are oversized. Resize and optimize them before packaging.
+      - name: Prepare Vita LiveArea images
+        run: |
+          apt-get update
+          apt-get install -y python3-pil
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+
+          icon = Path("sce_sys/icon0.png")
+          if icon.exists():
+              im = Image.open(icon).convert("RGBA")
+              im.thumbnail((128, 128), Image.Resampling.LANCZOS)
+              canvas = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+              canvas.alpha_composite(im, ((128-im.width)//2, (128-im.height)//2))
+              canvas.save(icon, format="PNG", optimize=True)
+
+          bg = Path("sce_sys/livearea/contents/bg.png")
+          if bg.exists():
+              im = Image.open(bg).convert("RGB")
+              im.thumbnail((960, 544), Image.Resampling.LANCZOS)
+              canvas = Image.new("RGB", (960, 544), (0, 0, 0))
+              canvas.paste(im, ((960-im.width)//2, (544-im.height)//2))
+              canvas.save(bg, format="PNG", optimize=True)
+          PY
+
       # Build a reproducible modern vitaGL stack. Pin all source revisions so
       # upstream changes cannot silently break the CI build.
       - name: Build Vita graphics dependencies
