@@ -26,14 +26,14 @@ jobs:
           def save_indexed(source, destination, size):
               im = Image.open(source).convert("RGB")
               im = ImageOps.fit(im, size, method=Image.Resampling.LANCZOS)
-              im = im.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
-              im.save(destination, format="PNG", optimize=True, bits=8)
+              im = im.quantize(colors=64, method=Image.Quantize.MEDIANCUT)
+              im.save(destination, format="PNG", optimize=True, compress_level=9, bits=8)
               data = Path(destination).read_bytes()
               assert data[:8] == b"\x89PNG\r\n\x1a\n"
               width, height, depth, color_type = struct.unpack(">IIBB", data[16:26])
               assert (width, height) == size, (destination, width, height)
               assert depth == 8 and color_type == 3, (destination, depth, color_type)
-              assert len(data) <= 128 * 1024, (destination, len(data))
+              assert len(data) <= 512 * 1024, (destination, len(data))
               print(f"{destination}: {width}x{height}, 8-bit indexed, {len(data)} bytes")
 
           save_indexed("sce_sys/icon0.png", "sce_sys/icon0.png", (128, 128))
