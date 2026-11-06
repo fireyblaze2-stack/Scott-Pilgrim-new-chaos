@@ -8,7 +8,7 @@ endif()
 project(NewChaos LANGUAGES C CXX)
 
 if(NOT DEFINED ENV{VITASDK})
-    message(FATAL_ERROR "VITASDK is not set. Install VitaSDK and export VITASDK.")
+    message(FATAL_ERROR "VITASDK is not set. Install VitaSDK and export it.")
 endif()
 
 include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
@@ -70,7 +70,7 @@ vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
 set(VPK_LIVEAREA_FILES)
 foreach(asset
     sce_sys/icon0.png
-    sce_sys/livearea/contents/bg.png
+    sce_sys/livearea/contents/bg0.png
     sce_sys/livearea/contents/template.xml
 )
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${asset}")
