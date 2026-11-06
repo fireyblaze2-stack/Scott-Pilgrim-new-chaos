@@ -70,5 +70,5 @@ vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
 vita_create_vpk(NewChaos.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME "New Chaos"
-    FILE assets/scott_idle.bmp assets/scott_idle.bmp
+    FILE scott_walk_atlas.bmp scott_walk_atlas.bmp
 )
